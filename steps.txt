@@ -1,0 +1,13 @@
+ALIGN THE DATASET:
+
+$ python facenet/src/align_dataset_mtcnn.py  training/results training/aligned_dataset/ --image_size 160 --margin 32 --random_order --gpu_memory_fraction 0.25
+
+TRAIN THE DATASET:
+
+$ python facenet/src/classifier.py TRAIN training/aligned_dataset/ training/models/20170512-110547/20170512-110547.pb training/classifier/face_classifier.pkl --batch_size 1000 --min_nrof_images_per_class 20 --nrof_train_images_per_class 20
+
+RUN IMAGE RPC SERVER:
+python training\zerorpc_server.py
+
+RUN FLASK SERVER:
+python training\zerorpc_client.py
