@@ -29,6 +29,9 @@ from sklearn.svm import SVC
 from scipy import misc
 import detect_face
 from six.moves import xrange
+from matplotlib.pyplot import imread
+from skimage.transform import resize
+
 # from flask import jsonify
 import logging
 logging.basicConfig()
@@ -52,7 +55,7 @@ minsize = 20 # minimum size of face
 threshold = [ 0.6, 0.7, 0.7 ]  # three steps's threshold
 factor = 0.709 # scale factor
 img_li = []
-imgTmp = misc.imread(os.path.expanduser(preload_image))
+imgTmp = imread(os.path.expanduser(preload_image))
 img_sz = np.asarray(imgTmp.shape)[0:2]
 with tf.Graph().as_default():
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=GPU_MEMORY_FRACTION)
@@ -73,7 +76,7 @@ with tf.Graph().as_default():
             bb[2] = np.minimum(det[2]+MARGIN/2, img_sz[1])
             bb[3] = np.minimum(det[3]+MARGIN/2, img_sz[0])
             cropped = imgTmp[bb[1]:bb[3],bb[0]:bb[2],:]
-            aligned = misc.imresize(cropped, (IMAGE_SIZE, IMAGE_SIZE), interp='bilinear')
+            aligned = resize(cropped, (IMAGE_SIZE, IMAGE_SIZE))
             prewhitened = facenet.prewhiten(aligned)
             img_li.append(prewhitened)
             bbs.append(bounding_boxes[j])
@@ -91,7 +94,7 @@ class RPCCom(object):
         img_list = []
 
         try:
-            img = misc.imread(os.path.expanduser(file_to_process))
+            img = imread(os.path.expanduser(file_to_process))
             img_size = np.asarray(img.shape)[0:2]
             with tf.Graph().as_default():
                 with sess.as_default():
@@ -108,7 +111,7 @@ class RPCCom(object):
                         bb[2] = np.minimum(det[2]+MARGIN/2, img_size[1])
                         bb[3] = np.minimum(det[3]+MARGIN/2, img_size[0])
                         cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
-                        aligned = misc.imresize(cropped, (IMAGE_SIZE, IMAGE_SIZE), interp='bilinear')
+                        aligned = resize(cropped, (IMAGE_SIZE, IMAGE_SIZE))
                         prewhitened = facenet.prewhiten(aligned)
                         img_list.append(prewhitened)
                         bbs.append(bounding_boxes[j])

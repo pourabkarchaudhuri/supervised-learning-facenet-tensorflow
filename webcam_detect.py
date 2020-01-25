@@ -18,16 +18,16 @@ def main():
     c.connect("tcp://127.0.0.1:4242")
     if os.path.exists("images"):
         shutil.rmtree("images")
-
+    print("Connected to server")
     os.mkdir('images')
     # Capture device. Usually 0 will be webcam and 1 will be usb cam.
     # filename_video = 'video.mp4' #Replace with Filename here of Video kept in /uploads Folder
     # file_name = os.getcwd() + "\\uploads\\" + filename_video
-    video_capture = cv2.VideoCapture(1)
+    video_capture = cv2.VideoCapture(0)
     # video_capture.set(3, 640)
     # video_capture.set(4, 480)
-    video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 430)
     minsize = 25 # minimum size of face
     threshold = [ 0.6, 0.7, 0.7 ]  # three steps's threshold
     factor = 0.709 # scale factor
@@ -37,8 +37,8 @@ def main():
 
     # sess = tf.Session()
     # sess = tf.Session() #Add GPU Module here
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.40)
-    sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+    gpu_options = tf.compat.v1.GPUOptions(per_process_gpu_memory_fraction=0.40)
+    sess =  tf.compat.v1.Session(config= tf.compat.v1.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
     with sess.as_default():
         pnet, rnet, onet = detect_face_detection.create_mtcnn(sess, None)
 
@@ -72,17 +72,18 @@ def main():
                 cv2.imwrite(path, sub_faces)
                 result = c.classifyFile(path)
                 # print(type(result[0]) == dict)
-                if (len(result) != 0):
-                    if (type(result[0]) == dict and len(result[0]['candidates']) != 0):
-                        # result[0]['candidates']['name']
-                        # print(result[0])
-                        recognized_faces = result[0]
-                        if (result[0]['candidates']['confidence']>0.96):
-                            cv2.putText(img, recognized_faces['candidates']['name'] + " : " + str(round(recognized_faces['candidates']['confidence'], 2)), (x,y-10),cv2.FONT_HERSHEY_SIMPLEX, 0.50, (255, 255, 255), 1)
+                if(result is not None):
+                    if (len(result) != 0):
+                        if (type(result[0]) == dict and len(result[0]['candidates']) != 0):
+                            # result[0]['candidates']['name']
+                            # print(result[0])
+                            recognized_faces = result[0]
+                            if (result[0]['candidates']['confidence']>0.96):
+                                cv2.putText(img, recognized_faces['candidates']['name'] + " : " + str(round(recognized_faces['candidates']['confidence'], 2)), (x,y-10),cv2.FONT_HERSHEY_SIMPLEX, 0.50, (255, 255, 255), 1)
+                            else:
+                                cv2.putText(img, "Score too low", (x,y),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
                         else:
-                            cv2.putText(img, "Score too low", (x,y),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-                    else:
-                        cv2.putText(img, "No Faces Recognized", (x,y),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                            cv2.putText(img, "Unauthorized Person", (x,y),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
             end_time = time.time()
             fps = fps * 0.9 + 1/(end_time - start_time) * 0.1
             start_time = end_time
