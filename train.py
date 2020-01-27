@@ -18,5 +18,5 @@ print("Waiting for "+str(wait)+" seconds and flushing GPU memory")
 end = time.time()
 print("Execution Time : " + str((end - start)/60) + " mins.")
 
-os.system('python training/zerorpc_server.py')
+# os.system('python training/zerorpc_server.py')
 # os.system('gnome-terminal -x training/zerorpc_client.py')
